@@ -151,18 +151,27 @@ public static class Integration
         if(Process.GetProcessesByName("XXMI Launcher").Length>0) throw new InvalidOperationException("请先退出 XXMI，避免其覆盖配置。不会结束现有 XXMI 进程。");
         if(Process.GetProcessesByName("Endfield").Length>0) throw new InvalidOperationException("请先退出终末地再修改适配配置。");
     }
+    static void CheckClosedFor(string configPath, string statePath)
+    {
+        // Tests may edit only their own configuration and state, even during a real game.
+        // Production paths retain the existing game/loader-running protection.
+        string fixture=Path.GetFullPath(Path.Combine(Storage.Data,"test-fixture"))+Path.DirectorySeparatorChar;
+        if(Path.GetFullPath(configPath).StartsWith(fixture,StringComparison.OrdinalIgnoreCase)
+            && Path.GetFullPath(statePath).StartsWith(fixture,StringComparison.OrdinalIgnoreCase)) return;
+        CheckClosed();
+    }
     public static string Apply(Profile p, string? statePath=null)
     {
-        CheckClosed(); Program.ValidateGame(p);
+        string path=ConfigPath(p.Xxmi),stateFile=statePath??Path.Combine(Storage.Data,"integration-backup.json");
+        CheckClosedFor(path,stateFile); Program.ValidateGame(p);
         if(!ValidGame(p.Game))throw new InvalidDataException("游戏路径必须包含 Endfield.exe 和同目录 Endfield_Data。");
         if(IsConfigured(p)) throw new InvalidOperationException("已适配，不覆盖首次备份。");
-        string path=ConfigPath(p.Xxmi),original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
+        string original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
         string mode=ef["xxmi_dll_inject_mode"]?.ToString()??"";
         if(mode!="DIRECT" && mode!="HOOK")throw new InvalidOperationException("当前 EFMI 注入模式不是 DIRECT 或 HOOK。");
         if(ef["run_pre_launch_enabled"]?.GetValue<bool>()==true && (ef["run_pre_launch"]?.ToString()??"").Contains("EndfieldBridge",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("前置命令包含桥接调用，请先移除，以免阻塞 Mod 加载。");
         string backup=path+".endfieldbridge-"+DateTime.Now.ToString("yyyyMMdd-HHmmss-fff")+".bak";
         File.WriteAllText(backup,original,new System.Text.UTF8Encoding(false));
-        string stateFile=statePath??Path.Combine(Storage.Data,"integration-backup.json");
         bool preserve=false;
         if(File.Exists(stateFile) && (ef["custom_launch"]?.ToString()==Command||ef["custom_launch"]?.ToString()==LegacyCommand))
         { var old=Read(stateFile);preserve=old["config"]?.ToString()==path; }
@@ -181,7 +190,9 @@ public static class Integration
     }
     public static void Restore(string? statePath=null)
     {
-        CheckClosed();var state=Read(statePath??Path.Combine(Storage.Data,"integration-backup.json"));string path=state["config"]!.GetValue<string>();string original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
+        string stateFile=statePath??Path.Combine(Storage.Data,"integration-backup.json");
+        var state=Read(stateFile);string path=state["config"]!.GetValue<string>();CheckClosedFor(path,stateFile);
+        string original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
         if(ef["custom_launch"]?.ToString()!=Command&&ef["custom_launch"]?.ToString()!=LegacyCommand)throw new InvalidOperationException("自定义命令已改变，停止恢复以保留你的新设置。");
         File.Copy(path,path+".before-restore-"+DateTime.Now.ToString("yyyyMMddHHmmssfff")+".bak");
         if(state["fields"] is JsonObject fields)
