@@ -66,8 +66,23 @@ XXMI 的游戏目录必须是包含 `Endfield.exe` 和 `Endfield_Data` 的真实
 
 已有一次用户运行的本机日志记录了 XXMI DLL 注入成功；这不能代替 Mod 画面验证，更不能证明账号安全或未来兼容。
 
+## 参考与实现来源
+
+以下资料为开发提供了参考。列出来源是为了如实说明阅读和参考范围，不代表相关作者认可本项目或另行授予了使用许可。
+
+| 来源 | 参考范围 |
+| --- | --- |
+| [BlockyDeer/endfield-nolauncher](https://github.com/BlockyDeer/endfield-nolauncher) | 阅读了其 README 和下载到本地的源码，用于理解挂起官方进程、指定游戏父进程的启动方案。 |
+| [Dr-hydra/Better-Endfield](https://github.com/Dr-hydra/Better-Endfield) | 间接上游参考：endfield-nolauncher 声明其启动实现来源于该项目。本项目开发过程中未直接审阅该上游代码。 |
+| [SpectrumQT/XXMI-Launcher](https://github.com/SpectrumQT/XXMI-Launcher) | 查看了公开源码中的自定义启动配置、进程识别和命令签名验证方式，用于实现互操作。 |
+| Microsoft Windows API 文档：[父进程属性](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute)、[WinVerifyTrust](https://learn.microsoft.com/en-us/windows/win32/api/wintrust/nf-wintrust-winverifytrust) | 作为进程创建、父进程选择和官方文件签名验证的接口依据。 |
+
+本仓库没有直接合入上述项目的源文件。但开发过程确实阅读过第三方源码，因此这里**不宣称属于 clean-room 实现，也不宣称许可证兼容性已通过独立审查**。使用另一种编程语言实现相同功能，本身不能证明实现与所阅读代码不存在衍生关系。
+
 ## 许可证
 
-独立编写的项目源码使用 [MIT](LICENSE)。实现参考 Windows 官方 API 文档，没有合入 `endfield-nolauncher` 或 Better Endfield 源码；这不等于经过法律认证的 clean-room 审查。第三方程序保留各自许可证和使用条款。
+本项目源码声明使用 [MIT](LICENSE)，这不会改变参考项目或第三方组件的原有许可。特别是 endfield-nolauncher 声明使用 AGPL-3.0；如果实际复制、翻译、改编或以其他方式合入其受版权保护的代码，构成受该许可覆盖的衍生作品，仅标注来源并不足以履行义务，需要遵守适用许可证，或取得相关权利人的额外授权。
+
+源码版权许可与游戏运营规则是两回事：MIT 和上述致谢均不构成游戏官方对第三方工具使用方式的许可。请同时阅读[风险说明](RISK.zh-CN.md)。
 
 [完整英文说明和命令参数](README.md)

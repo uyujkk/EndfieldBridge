@@ -78,8 +78,21 @@ Self-tests cover argument quoting, configuration backup/restore, unrelated-field
 
 A local user-run session produced an XXMI DLL-injection success log. This is bounded evidence of that session, not a guarantee of visual Mod correctness, future compatibility, or account safety. A live game launch is intentionally not part of automated tests.
 
-## License and implementation provenance
+## References and implementation provenance
 
-[MIT](LICENSE) applies to this project's source. Implementation was written using Windows API documentation; no source from `endfield-nolauncher` or Better Endfield was incorporated. This is not a claim of a legally certified clean-room audit. Third-party software keeps its own license and terms.
+The following sources informed development. A reference acknowledges what was reviewed; it does not imply endorsement or permission from its authors.
 
-References: [Windows parent-process attribute](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute), [WinVerifyTrust](https://learn.microsoft.com/en-us/windows/win32/api/wintrust/nf-wintrust-winverifytrust), [XXMI Launcher](https://github.com/SpectrumQT/XXMI-Launcher).
+| Source | How it was used |
+| --- | --- |
+| [BlockyDeer/endfield-nolauncher](https://github.com/BlockyDeer/endfield-nolauncher) | Its README and locally downloaded source were reviewed to understand the suspended official process and parent-process launch approach. |
+| [Dr-hydra/Better-Endfield](https://github.com/Dr-hydra/Better-Endfield) | An indirect upstream reference: endfield-nolauncher identifies this project as the source of its launch implementation. It was not directly reviewed as part of this project. |
+| [SpectrumQT/XXMI-Launcher](https://github.com/SpectrumQT/XXMI-Launcher) | Its public source was reviewed for Custom Launch configuration, process detection, and command-signature verification to support interoperability. |
+| Microsoft Windows API documentation: [parent-process attribute](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute), [WinVerifyTrust](https://learn.microsoft.com/en-us/windows/win32/api/wintrust/nf-wintrust-winverifytrust) | API contracts used for process creation, parent selection, and official-file signature verification. |
+
+No source files from the referenced projects were directly incorporated into this repository. Development did include reading third-party source, so this is **not** a claim of a clean-room implementation or an independently audited license-compatibility conclusion. Implementing a feature in a different language does not, by itself, establish independence from the code that was reviewed.
+
+## License
+
+[MIT](LICENSE) is the license declared for this project's source. It does not relicense any referenced project or third-party component. In particular, endfield-nolauncher declares AGPL-3.0; attribution alone would not satisfy that license if its protected code were copied, translated, adapted, or otherwise incorporated into a covered derivative work. Such reuse would require compliance with the applicable license or separate permission from the relevant rights holders.
+
+Copyright licensing is also separate from the game operator's rules: neither MIT nor these acknowledgments grants permission to use third-party tools with the game. See [RISK.md](RISK.md).
