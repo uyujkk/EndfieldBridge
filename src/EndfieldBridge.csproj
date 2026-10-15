@@ -3,6 +3,10 @@
     <OutputType>WinExe</OutputType><TargetFramework>net9.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget><AssemblyName>EndfieldBridge</AssemblyName>
-    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode><ApplicationManifest>app.manifest</ApplicationManifest><Version>0.3.0</Version>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode><ApplicationManifest>app.manifest</ApplicationManifest><Version>0.3.1</Version>
+    <RuntimeFrameworkVersion>9.0.21</RuntimeFrameworkVersion>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/uyujkk/EndfieldBridge</RepositoryUrl>
+    <Copyright>Copyright (c) 2026 EndfieldBridge contributors; upstream credits in NOTICE.md</Copyright>
   </PropertyGroup>
 </Project>

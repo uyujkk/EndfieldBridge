@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 EndfieldBridge contributors.
+// Modified 2026-10-15: AGPL distribution and license UI; see NOTICE.md for upstream credits.
 using System.Diagnostics;
 
 namespace EndfieldBridge;
@@ -38,7 +41,7 @@ internal sealed class MainForm : Form
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 162));
         var heading = new Panel { Dock = DockStyle.Fill };
         var title = new Label { Text = "ENDFIELD BRIDGE", Font = new Font("Segoe UI", 20, FontStyle.Bold), ForeColor = Accent, AutoSize = true, Location = new Point(0, 0) };
-        var subtitle = new Label { AutoSize = true, ForeColor = Muted, Location = new Point(2, 54) }; Bind(subtitle, "实验版 0.3.0  /  Integrated Mod Manager 启动扩展", "Experimental 0.3.0  /  Integrated Mod Manager launch companion");
+        var subtitle = new Label { AutoSize = true, ForeColor = Muted, Location = new Point(2, 54) }; Bind(subtitle, "实验版 0.3.1  /  AGPL-3.0  /  Integrated Mod Manager", "Experimental 0.3.1  /  AGPL-3.0  /  Integrated Mod Manager");
         heading.Controls.Add(title); heading.Controls.Add(subtitle); header.Controls.Add(heading);
                  language.Anchor = AnchorStyles.Right; language.BackColor = Surface; language.ForeColor = Ink; header.Controls.Add(language); layout.Controls.Add(header);
         language.Click += (_, _) => ChangeLanguage(); lockable.Add(language);
@@ -65,7 +68,7 @@ internal sealed class MainForm : Form
         settings.Controls.Add(actions); layout.Controls.Add(settings);
 
         var nav = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 6, 0, 0), Margin = Padding.Empty };
-        string[] z = ["运行日志", "加载器适配", "风险与使用边界"], e = ["Activity", "Loader setup", "Risks / limits"];
+        string[] z = ["运行日志", "加载器适配", "风险与许可"], e = ["Activity", "Loader setup", "Risks / license"];
         for (int i = 0; i < 3; i++) { int index = i; navigation[i] = Button(z[i], e[i], () => { ShowPage(index); return Task.CompletedTask; }); nav.Controls.Add(navigation[i]); }
         layout.Controls.Add(nav);
         StyleOutput(log); StyleOutput(integration); StyleOutput(risk);
@@ -76,7 +79,14 @@ internal sealed class MainForm : Form
         tools.Controls.Add(Button("备份并适配 EFMI", "Back up + set up", () => { var p = Current(); Write(Integration.Import(p)); Set(p); Save(); if (Integration.IsConfigured(p)) { Write("适配已完成，原始备份未覆盖。", "Setup is already complete; the original backup was kept."); return Task.CompletedTask; } var b = Integration.Apply(p); mods.Checked = true; Save(); RefreshIntegration(); Write("备份位置：" + b, "Backup: " + b); Write(Integration.AuthorizationStatus(p)); return Task.CompletedTask; }));
         tools.Controls.Add(Button("恢复 EFMI", "Restore EFMI", () => { Integration.Restore(); mods.Checked = false; Save(); RefreshIntegration(); Write("已恢复原启动字段，其他设置保留。", "Original launch fields restored; other settings kept."); return Task.CompletedTask; }));
         tools.Controls.Add(Button("复制管理器入口", "Copy manager entry", () => { Integration.Export(); Clipboard.SetText(Path.Combine(Storage.Root, "StartFromModManager.cmd")); Write("入口已复制。在管理器的终末地仓库中，将启动器路径选择为此 CMD。", "Entry copied. Select this CMD as the launcher path in your manager's Endfield repository."); return Task.CompletedTask; })); integrationPage.Controls.Add(tools);
-        pages[0] = log; pages[1] = integrationPage; pages[2] = risk; workspace.Controls.AddRange(pages); layout.Controls.Add(workspace);
+        var legalPage = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
+        legalPage.RowStyles.Add(new RowStyle(SizeType.Absolute, 48)); legalPage.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var legalTools = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Margin = Padding.Empty };
+        legalTools.Controls.Add(Button("AGPL 正文", "AGPL license", () => { OpenDocument("LICENSE"); return Task.CompletedTask; }));
+        legalTools.Controls.Add(Button("来源与修改", "Credits / changes", () => { OpenDocument("NOTICE.md"); return Task.CompletedTask; }));
+        legalTools.Controls.Add(Button("对应源码", "Source code", () => { Process.Start(new ProcessStartInfo("https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.1") { UseShellExecute = true }); return Task.CompletedTask; }));
+        legalPage.Controls.Add(legalTools); legalPage.Controls.Add(risk);
+        pages[0] = log; pages[1] = integrationPage; pages[2] = legalPage; workspace.Controls.AddRange(pages); layout.Controls.Add(workspace);
 
         var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Padding = new Padding(0, 12, 0, 0), Margin = Padding.Empty };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210)); status.ForeColor = Accent; footer.Controls.Add(status);
@@ -90,6 +100,12 @@ internal sealed class MainForm : Form
     }
 
     void Bind(Control c, string zh, string en) => bindings.Add(() => c.Text = Locale.Choose(zh, en));
+    static void OpenDocument(string name)
+    {
+        string path = Path.Combine(Storage.Root, name);
+        if (!File.Exists(path)) throw new FileNotFoundException("Missing distribution document: " + name);
+        Process.Start(new ProcessStartInfo("notepad.exe", Win32.Quote(path)) { UseShellExecute = true });
+    }
     Button Button(string zh, string en, Func<Task> action)
     {
         var b = new Button { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(102, 34), FlatStyle = FlatStyle.Flat, BackColor = Surface, ForeColor = Ink, Padding = new Padding(12, 3, 12, 3), Margin = new Padding(0, 4, 10, 4) };
@@ -179,6 +195,8 @@ internal sealed class MainForm : Form
         finally { Busy(false); }
     }
     static string RiskText() => Locale.Choose(
-        "账号与使用风险\r\n\r\n本项目未经鹰角、GRYPHLINE 或 XXMI 官方认可，不保证不会封号。\r\n父进程桥接改变正常启动链；通过 XXMI / EFMI 加载 Mod 涉及第三方 DLL 注入。即使只修改外观，也不能据此认定获得官方许可。\r\n\r\n签名验证、启动成功和注入成功都是技术结果，不是游戏运营方的授权。我们无法给出可靠封号概率，也无法判断账号是否被标记。\r\n\r\n如果不能接受额外账号风险，请使用官方启动器且不加载第三方 Mod。\r\n\r\n权限与数据\r\n启动游戏可能要求管理员权限。配置、日志和备份保存在程序目录，日志可能包含本机路径。桥接不读取账号密码，不上传日志，不读取 XXMI 私钥。\r\n\r\n恢复只影响本地配置，不会撤销运营方可能已有的记录。正常退出会清理本工具创建的挂起父进程；强制终止可能留下该进程。\r\n\r\n完整说明及官方规则链接见仓库 RISK.zh-CN.md。",
-        "ACCOUNT AND USAGE RISKS\r\n\r\nThis project is not endorsed by Hypergryph, GRYPHLINE, or XXMI. There is no ban-free guarantee.\r\nParent-process bridging changes the normal launch chain. XXMI / EFMI Mods involve third-party DLL injection. Cosmetic-only changes are not proof of official permission.\r\n\r\nSignature checks, successful launches and injection logs are technical results, not authorization from the game operator. We cannot estimate a reliable ban probability or tell whether an account has been flagged.\r\n\r\nIf you cannot accept additional account risk, use the official launcher without third-party Mods.\r\n\r\nPRIVILEGES AND DATA\r\nLaunching may require administrator privileges. Configuration, logs and backups stay in the application folder; logs may contain local paths. The bridge does not read account passwords, upload logs, or read XXMI private keys.\r\n\r\nRestoring local configuration does not undo records the operator may already hold. Normal shutdown cleans up the suspended parent created by this tool; forced termination may leave it running.\r\n\r\nSee RISK.md in the repository for full details and official policy links.");
+        "Copyright (c) 2026 EndfieldBridge contributors；上游致谢见 NOTICE.md。\r\nAGPL-3.0-only · 不提供任何担保 · 可依许可证复制、修改和再分发。\r\n上方可查看许可证、来源与对应源码。\r\n\r\n",
+        "Copyright (c) 2026 EndfieldBridge contributors; upstream credits: NOTICE.md.\r\nAGPL-3.0-only · WITHOUT ANY WARRANTY · You may copy, modify and redistribute\r\nunder the license. License, notices and corresponding source: buttons above.\r\n\r\n") + Locale.Choose(
+        "账号与使用风险\r\n\r\n本项目未经鹰角、GRYPHLINE 或 XXMI 官方认可，不保证不会封号。\r\n父进程桥接改变正常启动链；通过 XXMI / EFMI 加载 Mod 涉及第三方 DLL 注入。即使只修改外观，也不能据此认定获得官方许可。\r\n\r\n签名验证、启动成功和注入成功都是技术结果，不是游戏运营方的授权。我们无法给出可靠封号概率，也无法判断账号是否被标记。\r\n\r\n如果不能接受额外账号风险，请使用官方启动器且不加载第三方 Mod。\r\n\r\n权限与数据\r\n启动游戏可能要求管理员权限。配置、日志和备份保存在程序目录，日志可能包含本机路径。桥接不读取账号密码，不上传日志，不读取 XXMI 私钥。\r\n\r\n恢复只影响本地配置，不会撤销运营方可能已有的记录。正常退出会清理本工具创建的挂起父进程；强制终止可能留下该进程。\r\n\r\n完整说明及官方规则链接见随包 RISK.zh-CN.md。\r\n\r\n版权与许可\r\nCopyright (c) 2026 EndfieldBridge contributors；上游致谢见 NOTICE.md。\r\n本程序以 AGPL-3.0-only 发布，不提供任何担保。你可以按照许可证复制、修改和再分发。\r\n本项目参考并改写了 endfield-nolauncher / Better-Endfield 的启动方案。上方按钮可查看许可证、来源与对应源码。",
+        "ACCOUNT AND USAGE RISKS\r\n\r\nThis project is not endorsed by Hypergryph, GRYPHLINE, or XXMI. There is no ban-free guarantee.\r\nParent-process bridging changes the normal launch chain. XXMI / EFMI Mods involve third-party DLL injection. Cosmetic-only changes are not proof of official permission.\r\n\r\nSignature checks, successful launches and injection logs are technical results, not authorization from the game operator. We cannot estimate a reliable ban probability or tell whether an account has been flagged.\r\n\r\nIf you cannot accept additional account risk, use the official launcher without third-party Mods.\r\n\r\nPRIVILEGES AND DATA\r\nLaunching may require administrator privileges. Configuration, logs and backups stay in the application folder; logs may contain local paths. The bridge does not read account passwords, upload logs, or read XXMI private keys.\r\n\r\nRestoring local configuration does not undo records the operator may already hold. Normal shutdown cleans up the suspended parent created by this tool; forced termination may leave it running.\r\n\r\nSee the bundled RISK.md for full details and official policy links.\r\n\r\nCOPYRIGHT AND LICENSE\r\nCopyright (c) 2026 EndfieldBridge contributors; upstream credits in NOTICE.md.\r\nLicensed under AGPL-3.0-only, WITHOUT ANY WARRANTY. You may copy, modify and redistribute this program under that license.\r\nThe launch implementation was informed by and adapted from endfield-nolauncher / Better-Endfield. Use the buttons above for the license, notices and corresponding source.");
 }

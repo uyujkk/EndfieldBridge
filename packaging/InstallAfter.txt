@@ -1,0 +1,14 @@
+Installation complete / 安装完成
+
+Open EndfieldBridge from the Start Menu when ready. Read INSTALL.md and the risk
+documents. Select your own game and loader paths; Mod mode requires explicit setup.
+Before uninstalling or moving, use Restore EFMI while the bridge is still present.
+Uninstall preserves user-created settings/backups and does not restore XXMI itself.
+
+请从开始菜单打开程序，阅读安装与风险说明，手动选择游戏和加载器并按需适配。
+卸载或移动前先在桥接内恢复 EFMI；卸载器保留用户配置和备份，不自动恢复 XXMI。
+
+AGPL-3.0-only / WITHOUT ANY WARRANTY / 不提供任何担保
+Copyright (c) 2026 EndfieldBridge contributors; upstream credits: NOTICE.md.
+Corresponding source / 对应源码:
+https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.1

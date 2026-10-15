@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 EndfieldBridge contributors.
+// Modified 2026-10-15: AGPL distribution and license UI; see NOTICE.md for upstream credits.
 using System.Diagnostics;
 using System.Security.Principal;
 using System.Text.Json;
@@ -9,6 +12,8 @@ internal static class Program
     [STAThread]
     static int Main(string[] args)
     {
+        // Presence guard lets Setup refuse replacement while any bridge process is alive.
+        using var installationGuard = new Mutex(false, @"Local\EndfieldBridge.Running");
         ApplicationConfiguration.Initialize();
         try
         {

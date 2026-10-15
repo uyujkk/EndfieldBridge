@@ -1,0 +1,19 @@
+ENDFIELDBRIDGE — UNOFFICIAL SOFTWARE / 非官方工具
+
+Third-party launching and DLL-based Mods may cause account penalties or bans.
+There is no ban-free guarantee or official endorsement. Installation and license
+acceptance do not authorize use under the game operator's rules.
+
+第三方启动与 DLL Mod 可能导致账号处罚或封禁。本工具无官方认可，不保证账号安全。
+安装或接受开源许可证，不等于获得游戏运营方的使用授权。
+
+Setup installs only the bridge and its .NET runtime for the current Windows user.
+It does not include, modify or launch the game, XXMI, or Mods. Close the game,
+bridge and XXMI normally before upgrading. Back up your existing bridge folder.
+Before moving from an older folder, restore EFMI there, then set up again here.
+
+仅为当前用户安装桥接与运行时，不含游戏、加载器或 Mod，不自动启动游戏。
+升级前正常退出游戏、桥接和 XXMI。换目录前先在旧桥接内恢复 EFMI，再到新位置适配。
+
+This information is not an additional restriction on your AGPL rights.
+此风险说明不构成 AGPL 授权之外的附加限制。

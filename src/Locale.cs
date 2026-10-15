@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 EndfieldBridge contributors.
+// Modified 2026-10-15: AGPL distribution and license UI; see NOTICE.md for upstream credits.
 namespace EndfieldBridge;
 
 internal static class Locale

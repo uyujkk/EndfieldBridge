@@ -19,7 +19,7 @@ Rules and enforcement can change. Check the applicable region's current terms. W
 - The official helper remains suspended. Normal cleanup only terminates the helper created by this session; forcibly terminating the bridge may leave it behind.
 - Paths, game updates, loader changes, or incompatible Mods may cause launch failures or crashes.
 - Backup/restore handles local configuration, not any game-server history. It does not prevent or undo penalties.
-- MIT licensing governs this source's copyright permissions. It does not authorize use against a game's terms.
+- AGPL-3.0 licensing governs this source's copyright permissions. It does not authorize use against a game's terms.
 
 ## Data and distribution
 

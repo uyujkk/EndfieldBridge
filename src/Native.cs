@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 EndfieldBridge contributors.
+// Modified 2026-10-15: AGPL distribution and license UI; see NOTICE.md for upstream credits.
+// Launch-core approach and quoting structure adapted after reviewing endfield-nolauncher
+// (fcda770), whose upstream is Better-Endfield (514f6d6). Both declare AGPL-3.0.
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

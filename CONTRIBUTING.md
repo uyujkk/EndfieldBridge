@@ -20,3 +20,31 @@ UI preview examples:
 The screenshots in `docs/images` are rendered previews with blank machine-specific paths, not evidence of game compatibility. Never commit runtime profiles, logs, backups, keys, binaries, or user screenshots containing personal paths. Stage source and documentation explicitly.
 
 When reporting bugs, include the bridge version, Windows and loader versions, language, and a redacted error message. Do not include account credentials or unreviewed XXMI configuration.
+
+## Release builds
+
+Source and packaging scripts are licensed AGPL-3.0-only; preserve upstream notices
+in NOTICE.md. Use a clean committed checkout on Windows x64, .NET 9 SDK and Inno
+Setup 6.7+ (ISCC.exe). PowerShell 7 is recommended. Obtain the compiler separately
+from https://jrsoftware.org/isdl.php and verify its Authenticode publisher.
+Inno Setup supports /PORTABLE=1 for a build-tools-only installation.
+
+```powershell
+$env:NUGET_PACKAGES = 'G:\Integrated_Mod_Manager_Development\tools\nuget-packages'
+pwsh -File scripts/Build-Release.ps1 -InnoCompiler 'G:\path\to\ISCC.exe'
+```
+
+The script publishes a self-contained Windows x64 directory with pinned .NET
+9.0.21, runs the existing isolated self-tests, excludes their fixtures and all
+user profiles, includes runtime license notices, creates a source ZIP from the
+exact Git commit, compiles the installer, and hashes the final assets. Outputs
+are below outputs/releases/0.3.1; use a fresh -OutputDirectory when rebuilding.
+The normal developer app/ folder and real loader/manager configurations are not
+used for packaging. Do not run --configure-loader during release verification.
+
+Test an extracted portable package and a temporary installer target, including
+uninstall and preservation of user-created files. Do not launch the game as part
+of release tests. Publish source ZIP and SHA256SUMS.txt beside both binary assets
+on the same tagged GitHub release. Mark experimental builds as pre-releases.
+No signing certificate is configured; state that the project's EXE and installer
+are unsigned. Build scripts and source links do not establish account safety.
