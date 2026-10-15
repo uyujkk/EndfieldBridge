@@ -95,7 +95,7 @@ New-Item -ItemType Directory -Path $installerPayload | Out-Null
 Copy-Item -Path (Join-Path $cleanPayload '*') -Destination $installerPayload -Recurse
 Copy-Item -LiteralPath (Join-Path $installerBundle 'EndfieldBridge.exe') -Destination $installerPayload -Force
 $installerInfo = Get-Content -LiteralPath (Join-Path $installerPayload 'docs\BUILD-INFO.json') -Raw | ConvertFrom-Json
-$installerInfo | Add-Member -NotePropertyName bundleCompression -NotePropertyValue $false
+$installerInfo | Add-Member -NotePropertyName bundleCompression -NotePropertyValue $false -Force
 $installerInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $installerPayload 'docs\BUILD-INFO.json') -Encoding utf8
 & $InnoCompiler "/DAppVersion=$version" "/DPayloadDir=$installerPayload" "/DArtifactDir=$assets" (Join-Path $root 'packaging\EndfieldBridge.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
