@@ -38,7 +38,9 @@ EndfieldBridge-0.3.2-win-x64/
 ```
 
 The .NET runtime and required Chinese system-control resources are bundled into
-one compressed EXE. Native runtime components extract automatically into .NET's
+one EXE. The portable EXE uses internal compression; Setup compresses an equivalent
+uncompressed bundle with LZMA to reduce the installer download. The two EXEs have
+different sizes but use the same source and runtime. Native components extract into .NET's
 per-user temporary cache. Do not use that cache as a launcher or settings path.
 The actual bridge EXE path, XXMI callback and manager entry remain in this folder.
 

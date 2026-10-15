@@ -85,6 +85,6 @@ clean-room 或已确认纯 MIT 的实现。2026-10-15 的审查也直接核对�
 程序无担保，允许依许可证复制、修改与再分发。风险说明不是附加许可限制，也不代表
 游戏官方授权。独立 Mod 管理器不在本项目许可证变更范围内。
 
-Version 0.3.2 (2026-10-15) bundles the runtime into one compressed executable, groups
+Version 0.3.2 (2026-10-15) bundles the runtime into one executable, groups
 documents and licenses, migrates known runtime state to data/, and provides an exact
 0.3.1 package-file cleanup list for installer upgrades. No game-launch algorithm changes.

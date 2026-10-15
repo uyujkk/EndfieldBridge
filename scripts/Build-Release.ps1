@@ -54,7 +54,7 @@ if (!(Test-Path -LiteralPath $compilerLicense)) { throw 'Inno Setup License.txt 
 Copy-Item -LiteralPath $compilerLicense -Destination (Join-Path $licenses 'INNO-SETUP-LICENSE.txt')
 $sourceName = "EndfieldBridge-$version-source.zip"
 $sourceUrl = "https://github.com/uyujkk/EndfieldBridge/releases/download/v$version/$sourceName"
-$buildInfo = [ordered]@{version=$version;commit=$revision;runtime=$runtime;rid='win-x64';selfContained=$true;singleFile=$true;source=$sourceUrl;license='AGPL-3.0-only'}
+$buildInfo = [ordered]@{version=$version;commit=$revision;runtime=$runtime;rid='win-x64';selfContained=$true;singleFile=$true;bundleCompression=$true;source=$sourceUrl;license='AGPL-3.0-only'}
 $buildInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $docs 'BUILD-INFO.json') -Encoding utf8
 @("Corresponding source / 对应源码: $sourceUrl", "Commit: $revision", 'AGPL-3.0-only; see ../licenses/LICENSE and NOTICE.md. Rebuild with scripts/Build-Release.ps1.') | Set-Content -LiteralPath (Join-Path $docs 'SOURCE.txt') -Encoding utf8
 "@echo off`r`n`"%~dp0EndfieldBridge.exe`" --launch`r`nexit /b %errorlevel%`r`n" | Set-Content -LiteralPath (Join-Path $payload 'StartFromModManager.cmd') -Encoding ascii
@@ -80,7 +80,24 @@ $portable = Join-Path $assets "EndfieldBridge-$version-win-x64-portable.zip"
 Compress-Archive -LiteralPath $cleanPayload -DestinationPath $portable -CompressionLevel Optimal
 & git @gitArgs archive --format=zip "--prefix=EndfieldBridge-$version-source/" "--output=$(Join-Path $assets $sourceName)" $revision
 if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
-& $InnoCompiler "/DAppVersion=$version" "/DPayloadDir=$cleanPayload" "/DArtifactDir=$assets" (Join-Path $root 'packaging\EndfieldBridge.iss')
+# Give Inno an uncompressed single-file bundle so LZMA can compress the runtime
+# as a whole. Portable users receive the internally compressed smaller EXE.
+$installerBundle = Join-Path $out 'installer-publish'
+& dotnet publish (Join-Path $root 'src\EndfieldBridge.csproj') -c Release -r win-x64 --self-contained true --no-restore -o $installerBundle -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:ContinuousIntegrationBuild=true
+if ($LASTEXITCODE -ne 0) { throw 'Installer single-file publish failed.' }
+$installerTest = Start-Process -FilePath (Join-Path $installerBundle 'EndfieldBridge.exe') -ArgumentList '--self-test' -WindowStyle Hidden -PassThru
+if (!$installerTest.WaitForExit(60000)) { throw 'Installer bundle self-test timed out.' }
+$installerTest.Refresh()
+Copy-Item -LiteralPath (Join-Path $installerBundle 'data\self-test.txt') -Destination (Join-Path $out 'installer-self-test.txt')
+if ($installerTest.ExitCode -ne 0) { throw 'Installer bundle self-test failed.' }
+$installerPayload = Join-Path $out "installer-distribution\$payloadName"
+New-Item -ItemType Directory -Path $installerPayload | Out-Null
+Copy-Item -Path (Join-Path $cleanPayload '*') -Destination $installerPayload -Recurse
+Copy-Item -LiteralPath (Join-Path $installerBundle 'EndfieldBridge.exe') -Destination $installerPayload -Force
+$installerInfo = Get-Content -LiteralPath (Join-Path $installerPayload 'docs\BUILD-INFO.json') -Raw | ConvertFrom-Json
+$installerInfo | Add-Member -NotePropertyName bundleCompression -NotePropertyValue $false
+$installerInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $installerPayload 'docs\BUILD-INFO.json') -Encoding utf8
+& $InnoCompiler "/DAppVersion=$version" "/DPayloadDir=$installerPayload" "/DArtifactDir=$assets" (Join-Path $root 'packaging\EndfieldBridge.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 Get-ChildItem -LiteralPath $assets -File | Sort-Object Name | ForEach-Object { '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name } | Set-Content -LiteralPath (Join-Path $assets 'SHA256SUMS.txt') -Encoding ascii
 Write-Output "Release assets: $assets"

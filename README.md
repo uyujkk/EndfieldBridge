@@ -34,7 +34,7 @@ Other regions, Wine/Proton, and different loader versions have not been validate
 
 ## Install
 
-Download the Windows x64 **Setup.exe** or **portable.zip** from [Releases](https://github.com/uyujkk/EndfieldBridge/releases). Both include .NET 9.0.21 in one compressed EXE. The package root contains only the EXE, manager entry, quick guide, `docs` and `licenses`; settings and logs go into `data` on first run. The installer installs for the current user, preserves user-generated settings on same-folder upgrades and does not launch the game. Read [INSTALL.md](INSTALL.md) before upgrading, moving or uninstalling an existing bridge. Each release also provides the matching source archive and SHA-256 checksums.
+Download the Windows x64 **Setup.exe** or **portable.zip** from [Releases](https://github.com/uyujkk/EndfieldBridge/releases). Both include .NET 9.0.21 in one EXE. The package root contains only the EXE, manager entry, quick guide, `docs` and `licenses`; settings and logs go into `data` on first run. The installer installs for the current user, preserves user-generated settings on same-folder upgrades and does not launch the game. Read [INSTALL.md](INSTALL.md) before upgrading, moving or uninstalling an existing bridge. Each release also provides the matching source archive and SHA-256 checksums.
 
 ## Build and run
 

@@ -48,3 +48,8 @@ of release tests. Publish source ZIP and SHA256SUMS.txt beside both binary asset
 on the same tagged GitHub release. Mark experimental builds as pre-releases.
 No signing certificate is configured; state that the project's EXE and installer
 are unsigned. Build scripts and source links do not establish account safety.
+
+The portable publish enables internal single-file compression. The installer
+publish disables it and lets Inno LZMA compress the bundle instead. Both variants
+run the same self-tests and are built from the same source commit; their EXE hashes
+and installed sizes differ. This avoids nested compression increasing Setup size.

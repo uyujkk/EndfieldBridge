@@ -23,7 +23,7 @@ Windows 图形化启动工具，使用官方签名的父进程启动终末地，
 
 ## 安装发布包
 
-从 [GitHub Releases](https://github.com/uyujkk/EndfieldBridge/releases) 下载 Windows x64 安装版 **Setup.exe** 或免安装版 **portable.zip**。两者将 .NET 9.0.21 合并到单个压缩 EXE，无需另装运行时。根目录只保留主程序、管理器入口、简短说明、`docs` 与 `licenses`，运行数据在首次运行后写入 `data`。安装版仅为当前用户安装，同目录升级保留用户生成的配置，安装结束不自动启动游戏。每次发布同时提供对应源码 ZIP 和 SHA-256 校验清单。更新、换目录或卸载前请阅读 [INSTALL.md](INSTALL.md)。
+从 [GitHub Releases](https://github.com/uyujkk/EndfieldBridge/releases) 下载 Windows x64 安装版 **Setup.exe** 或免安装版 **portable.zip**。两者将 .NET 9.0.21 合并到单个 EXE，无需另装运行时。根目录只保留主程序、管理器入口、简短说明、`docs` 与 `licenses`，运行数据在首次运行后写入 `data`。安装版仅为当前用户安装，同目录升级保留用户生成的配置，安装结束不自动启动游戏。每次发布同时提供对应源码 ZIP 和 SHA-256 校验清单。更新、换目录或卸载前请阅读 [INSTALL.md](INSTALL.md)。
 
 ## 环境与构建
 
