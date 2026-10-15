@@ -23,7 +23,7 @@ Windows 图形化启动工具，使用官方签名的父进程启动终末地，
 
 ## 安装发布包
 
-从 [GitHub Releases](https://github.com/uyujkk/EndfieldBridge/releases) 下载 Windows x64 安装版 **Setup.exe** 或免安装版 **portable.zip**。两者自带 .NET 9.0.21，无需另装运行时。安装版仅为当前用户安装，同目录升级保留用户生成的配置，安装结束不自动启动游戏。每次发布同时提供对应源码 ZIP 和 SHA-256 校验清单。更新、换目录或卸载前请阅读 [INSTALL.md](INSTALL.md)。
+从 [GitHub Releases](https://github.com/uyujkk/EndfieldBridge/releases) 下载 Windows x64 安装版 **Setup.exe** 或免安装版 **portable.zip**。两者将 .NET 9.0.21 合并到单个压缩 EXE，无需另装运行时。根目录只保留主程序、管理器入口、简短说明、`docs` 与 `licenses`，运行数据在首次运行后写入 `data`。安装版仅为当前用户安装，同目录升级保留用户生成的配置，安装结束不自动启动游戏。每次发布同时提供对应源码 ZIP 和 SHA-256 校验清单。更新、换目录或卸载前请阅读 [INSTALL.md](INSTALL.md)。
 
 ## 环境与构建
 
@@ -56,7 +56,7 @@ XXMI 的游戏目录必须是包含 `Endfield.exe` 和 `Endfield_Data` 的真实
 
 ### 配置与恢复
 
-程序在自身目录写入 `profile.json`、`bridge.log` 和备份元数据，因此该目录需要可写。日志和配置备份可能包含本机路径，分享前请检查。
+程序在自身目录的 `data` 文件夹写入 `profile.json`、`bridge.log` 和备份元数据，因此该目录需要可写。日志和配置备份可能包含本机路径，分享前请检查。
 
 适配修改 EFMI 的七个字段：`game_launch`、`start_method`、`game_folder`、`game_process_exe_enabled`、`game_process_exe`、`custom_launch`，以及仅在命令改变时更新的 `custom_launch_signature`。其他设置保留。
 

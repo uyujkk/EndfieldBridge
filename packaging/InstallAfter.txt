@@ -11,4 +11,4 @@ Uninstall preserves user-created settings/backups and does not restore XXMI itse
 AGPL-3.0-only / WITHOUT ANY WARRANTY / 不提供任何担保
 Copyright (c) 2026 EndfieldBridge contributors; upstream credits: NOTICE.md.
 Corresponding source / 对应源码:
-https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.1
+https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.2

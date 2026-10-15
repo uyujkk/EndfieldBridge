@@ -5,10 +5,10 @@ Use .NET 9 SDK on Windows x64. There are no external NuGet package dependencies.
 ```powershell
 dotnet build src/EndfieldBridge.csproj -c Release -o app
 .\app\EndfieldBridge.exe --self-test
-Get-Content .\app\self-test.txt
+Get-Content .\app\data\self-test.txt
 ```
 
-Self-tests create temporary fixtures below the output directory and start only the bridge executable as a harmless probe. They do not launch Endfield or perform injection. Run on a machine without a configured game to exercise the portable path; the official game-signature check is then skipped explicitly.
+Self-tests create temporary fixtures below data/ in the output directory and start only the bridge executable as a harmless probe. They do not launch Endfield or perform injection. Run on a machine without a configured game to exercise the portable path; the official game-signature check is then skipped explicitly.
 
 UI preview examples:
 
@@ -34,11 +34,11 @@ $env:NUGET_PACKAGES = 'G:\Integrated_Mod_Manager_Development\tools\nuget-package
 pwsh -File scripts/Build-Release.ps1 -InnoCompiler 'G:\path\to\ISCC.exe'
 ```
 
-The script publishes a self-contained Windows x64 directory with pinned .NET
+The script publishes a compressed self-contained Windows x64 single executable with pinned .NET
 9.0.21, runs the existing isolated self-tests, excludes their fixtures and all
-user profiles, includes runtime license notices, creates a source ZIP from the
+user profiles, groups documents and runtime license notices in docs/ and licenses/, creates a source ZIP from the
 exact Git commit, compiles the installer, and hashes the final assets. Outputs
-are below outputs/releases/0.3.1; use a fresh -OutputDirectory when rebuilding.
+are below outputs/releases/0.3.2; use a fresh -OutputDirectory when rebuilding.
 The normal developer app/ folder and real loader/manager configurations are not
 used for packaging. Do not run --configure-loader during release verification.
 

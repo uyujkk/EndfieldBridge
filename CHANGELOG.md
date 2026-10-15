@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2 — 2026-10-15
+
+- Bundle the self-contained runtime into one compressed EXE; retain English and
+  simplified-Chinese controls without loose language/runtime folders.
+- Keep only the app, manager entry, quick guide, docs/ and licenses/ in the package
+  root; use data/ for profiles, logs, tests, locks and restore metadata.
+- Migrate known legacy state without overwriting newer data; preserve the bridge
+  EXE path and XXMI callback for same-folder upgrades.
+- Clean exact 0.3.1 package filenames during installer upgrades. User data and
+  unrelated files are preserved. Portable ZIPs should be extracted to fresh folders.
+
 ## 0.3.1 — 2026-10-15
 
 - Distribute the standalone bridge under AGPL-3.0-only, with full license text,

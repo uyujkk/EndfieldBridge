@@ -26,7 +26,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 DisableProgramGroupPage=yes
-LicenseFile={#PayloadDir}\LICENSE
+LicenseFile={#PayloadDir}\licenses\LICENSE
 InfoBeforeFile=InstallRisk.txt
 InfoAfterFile=InstallAfter.txt
 OutputDir={#ArtifactDir}
@@ -52,9 +52,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+#include "LegacyLayoutCleanup.iss"
+
 [Icons]
 Name: "{group}\EndfieldBridge"; Filename: "{app}\EndfieldBridge.exe"; WorkingDir: "{app}"
-Name: "{group}\Installation and risk information"; Filename: "{app}\INSTALL.md"
+Name: "{group}\Installation and risk information"; Filename: "{app}\docs\INSTALL.md"
 Name: "{group}\{cm:UninstallProgram,EndfieldBridge}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\EndfieldBridge"; Filename: "{app}\EndfieldBridge.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 

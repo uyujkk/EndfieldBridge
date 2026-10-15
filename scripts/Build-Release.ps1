@@ -28,10 +28,17 @@ New-Item -ItemType Directory -Path $payload, $assets | Out-Null
 $env:DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE = 'true'
 $env:MSBuildEnableWorkloadResolver = 'false'
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
-& dotnet publish (Join-Path $root 'src\EndfieldBridge.csproj') -c Release -r win-x64 --self-contained true -o $payload -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:ContinuousIntegrationBuild=true
+$env:DOTNET_BUNDLE_EXTRACT_BASE_DIR = Join-Path $out "bundle-cache"
+& dotnet publish (Join-Path $root 'src\EndfieldBridge.csproj') -c Release -r win-x64 --self-contained true -o $payload -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:ContinuousIntegrationBuild=true
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish failed.' }
-foreach ($name in @('LICENSE','NOTICE.md','INSTALL.md','CHANGELOG.md','README.md','README.zh-CN.md','RISK.md','RISK.zh-CN.md','CONTRIBUTING.md')) {
-    Copy-Item -LiteralPath (Join-Path $root $name) -Destination $payload
+$docs = Join-Path $payload 'docs'
+$licenses = Join-Path $payload 'licenses'
+New-Item -ItemType Directory -Path $docs, $licenses | Out-Null
+Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination $licenses
+Copy-Item -LiteralPath (Join-Path $root 'packaging\PortableReadme.txt') -Destination (Join-Path $payload 'README.txt')
+foreach ($name in @('NOTICE.md','INSTALL.md','CHANGELOG.md','README.md','README.zh-CN.md','RISK.md','RISK.zh-CN.md','CONTRIBUTING.md')) {
+    $text = [IO.File]::ReadAllText((Join-Path $root $name)).Replace("(LICENSE)","(../licenses/LICENSE)").Replace("(docs/images/","(images/")
+    [IO.File]::WriteAllText((Join-Path $docs $name),$text,[Text.UTF8Encoding]::new($false))
 }
 New-Item -ItemType Directory -Path (Join-Path $payload 'docs\images') -Force | Out-Null
 Copy-Item -Path (Join-Path $root 'docs\images\*.png') -Destination (Join-Path $payload 'docs\images')
@@ -40,25 +47,25 @@ foreach ($pack in @('microsoft.netcore.app.runtime.win-x64','microsoft.windowsde
     $packDir = Join-Path $cache "$pack\$runtime"
     $legal = @(Get-ChildItem -LiteralPath $packDir -File | Where-Object { $_.Name -match '(?i)license|thirdpartynotices' })
     if (!$legal.Count) { throw "Runtime notices missing in $packDir" }
-    foreach ($file in $legal) { Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $payload "$pack-$($file.Name)") }
+    foreach ($file in $legal) { Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $licenses "$pack-$($file.Name)") }
 }
 $compilerLicense = Join-Path (Split-Path -Parent $InnoCompiler) 'License.txt'
 if (!(Test-Path -LiteralPath $compilerLicense)) { throw 'Inno Setup License.txt is required.' }
-Copy-Item -LiteralPath $compilerLicense -Destination (Join-Path $payload 'INNO-SETUP-LICENSE.txt')
+Copy-Item -LiteralPath $compilerLicense -Destination (Join-Path $licenses 'INNO-SETUP-LICENSE.txt')
 $sourceName = "EndfieldBridge-$version-source.zip"
 $sourceUrl = "https://github.com/uyujkk/EndfieldBridge/releases/download/v$version/$sourceName"
-$buildInfo = [ordered]@{version=$version;commit=$revision;runtime=$runtime;rid='win-x64';selfContained=$true;source=$sourceUrl;license='AGPL-3.0-only'}
-$buildInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $payload 'BUILD-INFO.json') -Encoding utf8
-@("Corresponding source / 对应源码: $sourceUrl", "Commit: $revision", 'AGPL-3.0-only; see LICENSE and NOTICE.md. Rebuild with scripts/Build-Release.ps1.') | Set-Content -LiteralPath (Join-Path $payload 'SOURCE.txt') -Encoding utf8
+$buildInfo = [ordered]@{version=$version;commit=$revision;runtime=$runtime;rid='win-x64';selfContained=$true;singleFile=$true;source=$sourceUrl;license='AGPL-3.0-only'}
+$buildInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $docs 'BUILD-INFO.json') -Encoding utf8
+@("Corresponding source / 对应源码: $sourceUrl", "Commit: $revision", 'AGPL-3.0-only; see ../licenses/LICENSE and NOTICE.md. Rebuild with scripts/Build-Release.ps1.') | Set-Content -LiteralPath (Join-Path $docs 'SOURCE.txt') -Encoding utf8
 "@echo off`r`n`"%~dp0EndfieldBridge.exe`" --launch`r`nexit /b %errorlevel%`r`n" | Set-Content -LiteralPath (Join-Path $payload 'StartFromModManager.cmd') -Encoding ascii
 $exe = Join-Path $payload 'EndfieldBridge.exe'
 $test = Start-Process -FilePath $exe -ArgumentList '--self-test' -WorkingDirectory $payload -WindowStyle Hidden -PassThru
 if (!$test.WaitForExit(60000)) { throw 'Self-test timed out; inspect the isolated test process.' }
 $test.Refresh()
-Copy-Item -LiteralPath (Join-Path $payload 'self-test.txt') -Destination (Join-Path $out 'self-test.txt')
+Copy-Item -LiteralPath (Join-Path $payload 'data\self-test.txt') -Destination (Join-Path $out 'self-test.txt')
 if ($test.ExitCode -ne 0) { throw 'Self-test failed; see self-test.txt.' }
 # A fresh publish output is staged with test fixtures and user data excluded.
-$forbidden = @('profile.json','bridge.log','self-test.txt','parent-probe.txt','integration-backup.json','test-fixture')
+$forbidden = @('data','profile.json','bridge.log','self-test.txt','parent-probe.txt','integration-backup.json','test-fixture')
 $cleanPayload = Join-Path $out "distribution\$payloadName"
 New-Item -ItemType Directory -Path $cleanPayload | Out-Null
 foreach ($item in Get-ChildItem -LiteralPath $payload -Force) {
@@ -66,6 +73,9 @@ foreach ($item in Get-ChildItem -LiteralPath $payload -Force) {
 }
 $bad = @(Get-ChildItem -LiteralPath $cleanPayload -Recurse -File | Where-Object { $_.Name -match '(?i)(^profile\.json$|\.bak$|\.lock$|\.pfx$|\.p12$|\.pdb$|^bridge\.log$|^self-test\.txt$)' })
 if ($bad.Count) { throw 'Private or temporary files detected in distribution.' }
+$rootNames = @(Get-ChildItem -LiteralPath $cleanPayload | ForEach-Object Name | Sort-Object)
+$expectedNames = @('EndfieldBridge.exe','StartFromModManager.cmd','README.txt','docs','licenses') | Sort-Object
+if (Compare-Object $expectedNames $rootNames) { throw 'Unexpected package root entry.' }
 $portable = Join-Path $assets "EndfieldBridge-$version-win-x64-portable.zip"
 Compress-Archive -LiteralPath $cleanPayload -DestinationPath $portable -CompressionLevel Optimal
 & git @gitArgs archive --format=zip "--prefix=EndfieldBridge-$version-source/" "--output=$(Join-Path $assets $sourceName)" $revision

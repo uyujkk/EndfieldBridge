@@ -23,10 +23,27 @@ public sealed class Profile
 public static class Storage
 {
     public static string Root => AppContext.BaseDirectory;
-    public static string Config => Path.Combine(Root, "profile.json");
+    public static string Data => Path.Combine(Root, "data");
+    public static string Config => Path.Combine(Data, "profile.json");
     public static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-    public static Profile Load() => File.Exists(Config) ? JsonSerializer.Deserialize<Profile>(File.ReadAllText(Config)) ?? throw new InvalidDataException("配置为空") : new();
-    public static void Save(Profile p) => Atomic(Config, JsonSerializer.Serialize(p, JsonOptions));
+    public static Profile Load()
+    {
+        MigrateLegacyData(Root);
+        return File.Exists(Config) ? JsonSerializer.Deserialize<Profile>(File.ReadAllText(Config)) ?? throw new InvalidDataException("配置为空") : new();
+    }
+    internal static void MigrateLegacyData(string root)
+    {
+        string data=Path.Combine(root,"data"); Directory.CreateDirectory(data);
+        // Move only known bridge state; never overwrite a newer data/ file.
+        foreach(string name in new[]{"profile.json","integration-backup.json","bridge.log","loader-adaptation.txt","command-help.txt","self-test.txt","game-session.lock"})
+        {
+            string old=Path.Combine(root,name), current=Path.Combine(data,name);
+            if(!File.Exists(old)||File.Exists(current)) continue;
+            try { File.Move(old,current); }
+            catch(IOException) { if(!File.Exists(current)) throw; }
+        }
+    }
+    public static void Save(Profile p) { Directory.CreateDirectory(Data); Atomic(Config, JsonSerializer.Serialize(p, JsonOptions)); }
     public static void Atomic(string path, string text)
     {
         string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -35,7 +52,7 @@ public static class Storage
     }
     public static void Log(string s)
     {
-        try { File.AppendAllText(Path.Combine(Root,"bridge.log"), $"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}] {Locale.Text(s)}{Environment.NewLine}"); } catch { }
+        try { Directory.CreateDirectory(Data); File.AppendAllText(Path.Combine(Data,"bridge.log"), $"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}] {Locale.Text(s)}{Environment.NewLine}"); } catch { }
     }
     public static IEnumerable<string> Parents(string game)
     {
@@ -145,7 +162,7 @@ public static class Integration
         if(ef["run_pre_launch_enabled"]?.GetValue<bool>()==true && (ef["run_pre_launch"]?.ToString()??"").Contains("EndfieldBridge",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("前置命令包含桥接调用，请先移除，以免阻塞 Mod 加载。");
         string backup=path+".endfieldbridge-"+DateTime.Now.ToString("yyyyMMdd-HHmmss-fff")+".bak";
         File.WriteAllText(backup,original,new System.Text.UTF8Encoding(false));
-        string stateFile=statePath??Path.Combine(Storage.Root,"integration-backup.json");
+        string stateFile=statePath??Path.Combine(Storage.Data,"integration-backup.json");
         bool preserve=false;
         if(File.Exists(stateFile) && (ef["custom_launch"]?.ToString()==Command||ef["custom_launch"]?.ToString()==LegacyCommand))
         { var old=Read(stateFile);preserve=old["config"]?.ToString()==path; }
@@ -164,7 +181,7 @@ public static class Integration
     }
     public static void Restore(string? statePath=null)
     {
-        CheckClosed();var state=Read(statePath??Path.Combine(Storage.Root,"integration-backup.json"));string path=state["config"]!.GetValue<string>();string original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
+        CheckClosed();var state=Read(statePath??Path.Combine(Storage.Data,"integration-backup.json"));string path=state["config"]!.GetValue<string>();string original=File.ReadAllText(path);var doc=JsonNode.Parse(original)!.AsObject();var ef=Efmi(doc);
         if(ef["custom_launch"]?.ToString()!=Command&&ef["custom_launch"]?.ToString()!=LegacyCommand)throw new InvalidOperationException("自定义命令已改变，停止恢复以保留你的新设置。");
         File.Copy(path,path+".before-restore-"+DateTime.Now.ToString("yyyyMMddHHmmssfff")+".bak");
         if(state["fields"] is JsonObject fields)

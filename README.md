@@ -34,7 +34,7 @@ Other regions, Wine/Proton, and different loader versions have not been validate
 
 ## Install
 
-Download the Windows x64 **Setup.exe** or **portable.zip** from [Releases](https://github.com/uyujkk/EndfieldBridge/releases). Both include .NET 9.0.21. The installer installs for the current user, preserves user-generated settings on same-folder upgrades and does not launch the game. Read [INSTALL.md](INSTALL.md) before upgrading, moving or uninstalling an existing bridge. Each release also provides the matching source archive and SHA-256 checksums.
+Download the Windows x64 **Setup.exe** or **portable.zip** from [Releases](https://github.com/uyujkk/EndfieldBridge/releases). Both include .NET 9.0.21 in one compressed EXE. The package root contains only the EXE, manager entry, quick guide, `docs` and `licenses`; settings and logs go into `data` on first run. The installer installs for the current user, preserves user-generated settings on same-folder upgrades and does not launch the game. Read [INSTALL.md](INSTALL.md) before upgrading, moving or uninstalling an existing bridge. Each release also provides the matching source archive and SHA-256 checksums.
 
 ## Build and run
 
@@ -61,7 +61,7 @@ The intended chain is: manager → bridge → XXMI / EFMI → bridge Custom Laun
 
 ### Settings and restore
 
-`profile.json`, `bridge.log`, and backup metadata are written beside the application. This folder must be writable. Logs and backups can contain local paths; review them before sharing.
+`data/profile.json`, `data/bridge.log`, and backup metadata are written in the application data subfolder. This folder must be writable. Logs and backups can contain local paths; review them before sharing.
 
 Setup changes seven EFMI importer fields: `game_launch`, `start_method`, `game_folder`, `game_process_exe_enabled`, `game_process_exe`, `custom_launch`, and, only when the command changes, `custom_launch_signature`. Other importer settings and game profiles are preserved.
 

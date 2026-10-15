@@ -1,6 +1,6 @@
 # Copyright, provenance and modifications / 版权、来源与修改说明
 
-EndfieldBridge 0.3.1 — modified on 2026-10-15.
+EndfieldBridge 0.3.2 — modified on 2026-10-15.
 
 Copyright (c) 2026 EndfieldBridge contributors. This notice claims only the
 contributors' own additions. All upstream rights remain with their respective
@@ -68,7 +68,7 @@ injectors, game files, or Mods. Users obtain and license those components separa
 For each release, the same GitHub release page provides the installer, portable
 binary package, SHA-256 checksums, and an explicit source archive containing the
 bridge source and packaging/build scripts at the tagged commit:
-https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.1
+https://github.com/uyujkk/EndfieldBridge/releases/tag/v0.3.2
 
 Build instructions are in CONTRIBUTING.md and `scripts/Build-Release.ps1`.
 The general-purpose .NET SDK and Inno Setup compiler are obtained separately.
@@ -84,3 +84,7 @@ clean-room 或已确认纯 MIT 的实现。2026-10-15 的审查也直接核对�
 安装包与便携包不含官方游戏、XXMI、Mod 或私人配置；对应源码在同一发布页提供。
 程序无担保，允许依许可证复制、修改与再分发。风险说明不是附加许可限制，也不代表
 游戏官方授权。独立 Mod 管理器不在本项目许可证变更范围内。
+
+Version 0.3.2 (2026-10-15) bundles the runtime into one compressed executable, groups
+documents and licenses, migrates known runtime state to data/, and provides an exact
+0.3.1 package-file cleanup list for installer upgrades. No game-launch algorithm changes.

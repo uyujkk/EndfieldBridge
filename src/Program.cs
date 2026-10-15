@@ -32,16 +32,16 @@ internal static class Program
                 form.Show();Application.DoEvents();
                 using var bitmap=new Bitmap(form.Width,form.Height);form.DrawToBitmap(bitmap,form.ClientRectangle with { Width=form.Width,Height=form.Height });bitmap.Save(args[1]);return 0;
             }
-            if(args.Length==1 && args[0]=="--help") {File.WriteAllText(Path.Combine(Storage.Root,"command-help.txt"),"EndfieldBridge.exe [--launch | --game-only | --self-test]\n无参数：配置界面\n--launch：按保存模式启动，供 Mod 管理器调用\n--game-only：仅启动游戏，供 XXMI 自定义命令调用\n");return 0;}
+            if(args.Length==1 && args[0]=="--help") {File.WriteAllText(Path.Combine(Storage.Data,"command-help.txt"),"EndfieldBridge.exe [--launch | --game-only | --self-test]\n无参数：配置界面\n--launch：按保存模式启动，供 Mod 管理器调用\n--game-only：仅启动游戏，供 XXMI 自定义命令调用\n");return 0;}
             if(args.Length==1 && args[0]=="--configure-loader")
             {
                 try
                 {
                     var profile=Storage.Load();string imported=Integration.Import(profile);ValidateGame(profile);ResolveParent(profile,Storage.Log);
                     string backup=Integration.Apply(profile);profile.WithMods=true;Storage.Save(profile);Integration.Export();
-                    File.WriteAllText(Path.Combine(Storage.Root,"loader-adaptation.txt"),imported+"\r\n备份："+backup+"\r\n"+Integration.Inspect(profile));return 0;
+                    File.WriteAllText(Path.Combine(Storage.Data,"loader-adaptation.txt"),imported+"\r\n备份："+backup+"\r\n"+Integration.Inspect(profile));return 0;
                 }
-                catch(Exception ex){File.WriteAllText(Path.Combine(Storage.Root,"loader-adaptation.txt"),ex.ToString());return 1;}
+                catch(Exception ex){File.WriteAllText(Path.Combine(Storage.Data,"loader-adaptation.txt"),ex.ToString());return 1;}
             }
             bool fromXxmi=args.SequenceEqual(new[]{"--game-only","--from-xxmi"});
             bool gameOnly=fromXxmi||args.SequenceEqual(new[]{"--game-only"});
@@ -80,7 +80,7 @@ internal static class Program
     }
     internal static int LaunchGame(Profile p,Action<string> log)
     {
-        using var sessionLock=File.Open(Path.Combine(Storage.Root,"game-session.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        using var sessionLock=File.Open(Path.Combine(Storage.Data,"game-session.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         ValidateGame(p);
         if(Process.GetProcessesByName("Endfield").Length>0) throw new InvalidOperationException("检测到终末地已在运行，请先退出，不会结束现有进程。");
         string parent=ResolveParent(p,log);
@@ -93,11 +93,19 @@ internal static class Program
         void Check(bool pass,string message) {report.Add((pass?"PASS ":"FAIL ")+message);if(!pass)throw new InvalidOperationException(message);}
         try
         {
+            string migration=Path.Combine(Storage.Data,"test-fixture","migration-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(migration);
+            File.WriteAllText(Path.Combine(migration,"profile.json"),"{\"Language\":\"en-US\"}");
+            File.WriteAllText(Path.Combine(migration,"integration-backup.json"),"keep-backup");
+            Storage.MigrateLegacyData(migration);
+            Check(!File.Exists(Path.Combine(migration,"profile.json")) && File.ReadAllText(Path.Combine(migration,"data","profile.json"))=="{\"Language\":\"en-US\"}","旧版配置迁入 data 且内容保留");
+            Check(File.ReadAllText(Path.Combine(migration,"data","integration-backup.json"))=="keep-backup","旧版恢复元数据迁移保留");
+            File.WriteAllText(Path.Combine(migration,"profile.json"),"older-profile");Storage.MigrateLegacyData(migration);
+            Check(File.ReadAllText(Path.Combine(migration,"data","profile.json"))!="older-profile" && File.ReadAllText(Path.Combine(migration,"profile.json"))=="older-profile","已有 data 配置不被旧文件覆盖");
             Check(Win32.Quote("")=="\"\"","空参数转义");
             Check(Win32.Quote("x\\")=="\"x\\\\\"","尾部反斜杠转义");
             Check(Win32.Quote("a\"b")=="\"a\\\"b\"","内嵌引号转义");
             bool rejected=false;try{Win32.Verify(Environment.ProcessPath!);}catch(InvalidDataException){rejected=true;}Check(rejected,"拒绝非官方父进程");
-                        string fixture=Path.Combine(Storage.Root,"test-fixture");Directory.CreateDirectory(fixture);
+                        string fixture=Path.Combine(Storage.Data,"test-fixture");Directory.CreateDirectory(fixture);
             string mockExe=Path.Combine(fixture,"XXMI Launcher.exe");File.WriteAllText(mockExe,"test fixture - never executed");
             string mockConfig=Path.Combine(fixture,"XXMI Launcher Config.json");
             string original="{\"Launcher\":{\"active_importer\":\"ZZMI\"},\"Importers\":{\"EFMI\":{\"Importer\":{\"game_launch\":\"MANUAL\",\"custom_launch\":\"previous\",\"custom_launch_signature\":\"keep\",\"xxmi_dll_inject_mode\":\"DIRECT\",\"launch_options\":\"preserve me\"}},\"ZZMI\":{\"preserve\":true}}}";
@@ -134,7 +142,7 @@ internal static class Program
             Integration.Restore(mockState);Check(System.Text.Json.Nodes.JsonNode.DeepEquals(Integration.Read(mockConfig),System.Text.Json.Nodes.JsonNode.Parse(original)),"模拟配置：恢复后与原配置一致");
             var p=Storage.Load();if(Integration.ValidGame(p.Game)){string parent=ResolveParent(p,s=>report.Add(s));Check(File.Exists(parent),"找到并验证官方 Games.exe");}else report.Add("SKIP Official signature integration check: no game configured.");
             // The probe starts only this executable as its own suspended parent and child.
-            string probe=Path.Combine(Storage.Root,"parent-probe.txt");if(File.Exists(probe))File.Delete(probe);
+            string probe=Path.Combine(Storage.Data,"parent-probe.txt");if(File.Exists(probe))File.Delete(probe);
             Process? probeParent=null;
             using(var session=Session.Create(Environment.ProcessPath!,Environment.ProcessPath!,"--probe "+Win32.Quote(probe),s=>report.Add(s),selfProbe:true))
             {
@@ -157,7 +165,7 @@ internal static class Program
             report.Add("未启动游戏、官方启动器或 Mod 注入；未改动真实 XXMI 或管理器配置。官方父进程创建仍需 UAC 后实测。");return 0;
         }
         catch(Exception ex){report.Add("FAIL "+ex);return 1;}
-        finally {File.WriteAllLines(Path.Combine(Storage.Root,"self-test.txt"),report);}
+        finally {File.WriteAllLines(Path.Combine(Storage.Data,"self-test.txt"),report);}
     }
     static System.Text.Json.Nodes.JsonObject JsonNodeForTest()=>System.Text.Json.Nodes.JsonNode.Parse("{\"Importers\":{\"EFMI\":{\"Importer\":{\"game_launch\":\"MANUAL\"}}}}")!.AsObject();
 }
